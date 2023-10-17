@@ -1,66 +1,147 @@
 #include "main.h"
 
-void print_buffer(char buffer[], int *buff_ind);
-
 /**
- * _printf - Printf function
- * @format: format.
- * Return: Printed chars.
- */
-int _printf(const char *format, ...)
+  * _putchar - writes the character c to stdout
+  * @c: The character to print
+  * Return: 1
+  **/
+
+int _putchar(char c)
 {
-	int i, printed = 0, printed_chars = 0;
-	int flags, width, precision, size, buff_ind = 0;
-	va_list list;
-	char buffer[BUFF_SIZE];
-
-	if (format == NULL)
-		return (-1);
-
-	va_start(list, format);
-
-	for (i = 0; format && format[i] != '\0'; i++)
-	{
-		if (format[i] != '%')
-		{
-			buffer[buff_ind++] = format[i];
-			if (buff_ind == BUFF_SIZE)
-				print_buffer(buffer, &buff_ind);
-			/* write(1, &format[i], 1);*/
-			printed_chars++;
-		}
-		else
-		{
-			print_buffer(buffer, &buff_ind);
-			flags = get_flags(format, &i);
-			width = get_width(format, &i, list);
-			precision = get_precision(format, &i, list);
-			size = get_size(format, &i);
-			++i;
-			printed = handle_print(format, &i, list, buffer,
-				flags, width, precision, size);
-			if (printed == -1)
-				return (-1);
-			printed_chars += printed;
-		}
-	}
-
-	print_buffer(buffer, &buff_ind);
-
-	va_end(list);
-
-	return (printed_chars);
+	return (write(1, &c, 1));
 }
 
 /**
- * print_buffer - Prints the contents of the buffer if it exist
- * @buffer: Array of chars
- * @buff_ind: Index at which to add next char, represents the length.
- */
-void print_buffer(char buffer[], int *buff_ind)
-{
-	if (*buff_ind > 0)
-		write(1, &buffer[0], *buff_ind);
+  * print_string - print string
+  * @s: the string
+  * Return: i
+  **/
 
-	*buff_ind = 0;
+int print_string(char *s)
+{
+	int i = 0;
+
+	if (s == NULL)
+	{
+		print_string("(null)");
+		return (6);
+	}
+	while (s[i])
+	{
+		_putchar(s[i]);
+		i++;
+	}
+	return (i);
+}
+
+/**
+  * length_number - calculate length number
+  * @n: length
+  * Return: i
+  **/
+
+int length_number(int n)
+{
+	if (n == 0)
+		return (0);
+	return (1 + length_number(n / 10));
+}
+
+/**
+  * print_number - print number
+  * @n: number
+  * Return: 1
+  **/
+
+int print_number(int n)
+{
+	if (n == -2147483648)
+	{
+		_putchar('-');
+		_putchar('2');
+		print_number(147483648);
+		return (1);
+	}
+	else if (n < 0)
+	{
+		_putchar('-');
+		n = -n;
+	}
+	if (n >= 10)
+	{
+		print_number(n / 10);
+		print_number(n % 10);
+	}
+	else if (n < 10)
+	{
+		_putchar(n + '0');
+	}
+	return (1);
+}
+
+/**
+  * _printf - produce  output according to a format
+  * @format: the format string
+  * Return: the number of characters printed
+  **/
+
+int _printf(const char *format, ...)
+{
+	int j = 0;
+	va_list l;
+
+	va_start(l, format);
+	if (!format || !format[0])
+		return (-1);
+	while (*format)
+	{
+		if (*format == '%')
+		{
+			format++;
+			if (*format == 'c')
+			{
+				char c = va_arg(l, int);
+
+				j += _putchar(c);
+			}
+			else if (*format == 's')
+			{
+				char *s = va_arg(l, char *);
+
+				j += print_string(s);
+			}
+			else if (*format == '%')
+			{
+				_putchar('%');
+				j++;
+			}
+			else if (*format == 'd' || *format == 'i')
+			{
+				int n = va_arg(l, int);
+
+				if (n < 0)
+					j++;
+				j += length_number(n);
+				print_number(n);
+			}
+			else
+			{
+				_putchar('%');
+				j++;
+				if (*format)
+				{
+					_putchar(*format);
+					j++;
+				}
+			}
+			format++;
+		}
+		else
+		{
+			_putchar(*format);
+			format++;
+			j++;
+		}
+	}
+	return (j);
 }
